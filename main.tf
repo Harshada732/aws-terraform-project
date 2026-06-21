@@ -16,6 +16,17 @@ resource "aws_subnet" "public_subnet" {
   }
 }
 
+resource "aws_subnet" "public_subnet_2" {
+  vpc_id                  = aws_vpc.main_vpc.id
+  cidr_block              = "10.0.2.0/24"
+  availability_zone       = "ap-south-1b"
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "public-subnet-2"
+  }
+}
+
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main_vpc.id
 }
@@ -77,11 +88,11 @@ apt install apache2 -y
 systemctl start apache2
 systemctl enable apache2
 
-echo "<h1>AWS Cloud & Terraform Project
-Successfully Deployed on AWS EC2
-Infrastructure as Code (IaC) using Terraform
-EC2 | VPC | IAM | S3 | CloudWatch
-CloudWatch Monitoring & Alerting Configured</h1>" > /var/www/html/index.html
+echo "<h1>Enterprise AWS Infrastructure</h1>
+<h2>Built with Terraform & AWS Cloud</h2>
+<p>This project demonstrates a production-ready cloud architecture using Infrastructure as Code.</p>
+<p>Services Used: VPC | EC2 | ALB | Auto Scaling | IAM | S3 | CloudWatch</p>
+<h3>DevOps & Cloud Engineering Project</h3>"  > /var/www/html/index.html
 EOF
 
   tags = {
@@ -92,7 +103,6 @@ EOF
 resource "aws_s3_bucket" "project_bucket" {
   bucket = "terraform-project-demo-2026-harshada"
 }
-
 
 resource "aws_iam_role" "ec2_role" {
   name = "ec2-s3-role"
