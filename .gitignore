@@ -5,3 +5,4 @@ te.backup
 .terraform/
 *tfstate
 *.tfstate.backupn
+*.tfstate*

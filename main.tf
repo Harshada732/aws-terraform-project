@@ -145,3 +145,106 @@ resource "aws_cloudwatch_metric_alarm" "cpu_alarm" {
 
   alarm_description = "Alarm when CPU exceeds 80%"
 }
+resource "aws_lb" "app_alb" {
+  name               = "terraform-alb"
+  internal           = false
+  load_balancer_type = "application"
+
+  security_groups = [aws_security_group.web_sg.id]
+
+  subnets = [
+    aws_subnet.public_subnet.id,
+    aws_subnet.public_subnet_2.id
+  ]
+}
+
+resource "aws_lb_target_group" "app_tg" {
+  name     = "terraform-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.main_vpc.id
+}
+
+resource "aws_lb_listener" "http" {
+  load_balancer_arn = aws_lb.app_alb.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.app_tg.arn
+  }
+}
+resource "aws_launch_template" "app_lt" {
+  name_prefix   = "terraform-lt"
+  image_id      = "ami-0f58b397bc5c1f2e8"
+  instance_type = "t3.micro"
+
+  vpc_security_group_ids = [aws_security_group.web_sg.id]
+
+  user_data = base64encode(<<EOF
+#!/bin/bash
+apt update -y
+apt install apache2 -y
+systemctl start apache2
+systemctl enable apache2
+
+echo "<h1>Enterprise AWS Infrastructure</h1>" > /var/www/html/index.html
+EOF
+)
+}
+
+resource "aws_autoscaling_group" "app_asg" {
+  desired_capacity = 2
+  max_size         = 4
+  min_size         = 2
+
+  vpc_zone_identifier = [
+    aws_subnet.public_subnet.id,
+    aws_subnet.public_subnet_2.id
+  ]
+
+  target_group_arns = [aws_lb_target_group.app_tg.arn]
+
+  launch_template {
+    id      = aws_launch_template.app_lt.id
+    version = "$Latest"
+  }
+}
+resource "aws_db_subnet_group" "main" {
+  name = "terraform-db-subnet-group"
+
+  subnet_ids = [
+    aws_subnet.public_subnet.id,
+    aws_subnet.public_subnet_2.id
+  ]
+}
+
+resource "aws_security_group" "rds_sg" {
+  name   = "rds-sg"
+  vpc_id = aws_vpc.main_vpc.id
+
+  ingress {
+    from_port       = 3306
+    to_port         = 3306
+    protocol        = "tcp"
+    security_groups = [aws_security_group.web_sg.id]
+  }
+}
+
+resource "aws_db_instance" "mysql_db" {
+  identifier     = "terraform-mysql-db"
+  engine         = "mysql"
+  instance_class = "db.t3.micro"
+
+  allocated_storage = 20
+
+  db_name  = "projectdb"
+  username = "adminuser"
+  password = "Terraform123"
+
+  skip_final_snapshot = true
+
+  vpc_security_group_ids = [aws_security_group.rds_sg.id]
+  db_subnet_group_name   = aws_db_subnet_group.main.name
+}

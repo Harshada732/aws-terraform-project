@@ -1,39 +1,37 @@
-AWS EC2 Infrastructure using Terraform
+AWS Terraform Infrastructure Project
 
-Project Description
+Project Overview
 
-This project provisions AWS infrastructure using Terraform.
+This project demonstrates Infrastructure as Code (IaC) using Terraform on AWS.
 
-Resources Created
+AWS Services Used
 
+- EC2
 - VPC
 - Public Subnet
 - Internet Gateway
 - Route Table
 - Security Group
-- EC2 Instance
+- IAM Role
+- S3 Bucket
+- CloudWatch Alarm
 
-Monitoring
+Features
 
-- Basic monitoring using AWS CloudWatch
+- Automated EC2 deployment
+- Custom VPC networking
+- IAM role-based permissions
+- S3 bucket creation
+- CloudWatch monitoring
+- Apache web server installation using User Data
 
-Technologies Used
+Tools & Technologies
 
-- AWS
 - Terraform
+- AWS
+- Linux
 - Git
 - GitHub
-
-Security Group Rules
-
-- SSH (Port 22)
-- HTTP (Port 80)
-
-Deployment Steps
-
-1. terraform init
-2. terraform plan
-3. terraform apply
 
 Author
 
